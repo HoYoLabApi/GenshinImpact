@@ -1,112 +1,56 @@
-﻿using HoYoLabApi;
+﻿using HoYoLabApi.Classes;
 using HoYoLabApi.interfaces;
 using HoYoLabApi.Models;
 using HoYoLabApi.Static;
 
-namespace HoyoLabApi.GenshinImpact;
+namespace HoYoLabApi.GenshinImpact;
 
-public class GenshinImpactService
+public class GenshinImpactService : GenshinImpactServiceBase
 {
-	private readonly IHoYoLabClient m_client;
-
-	public GenshinImpactService(IHoYoLabClient client)
-		=> m_client = client;
-	
-	public async Task<GameData> GetGameAccountAsync(ICookies cookies)
+	public GenshinImpactService(IHoYoLabClient client) : base(client)
 	{
-		return (await m_client.GetGamesArrayAsync(new Request(
-			"api-account-os",
-			"account/binding/api/getUserGameRolesByCookieToken",
-			cookies,
-			new Dictionary<string, string>()
-			{
-				{ "game_biz", "hk4e_global" },
-				{ "uid", cookies.AccountId.ToString() },
-				{ "sLangKey", cookies.Language.GetLanguageString() },
-			}
-		)).ConfigureAwait(false)).Data.GameAccounts.FirstOrDefault()!;
 	}
 	
-	public Task<GameData> GetGameAccountAsync(string cookies)
-		=> GetGameAccountAsync(cookies.ParseCookies());
-	
-	public Task<GameData> GetGameAccountAsync()
-		=> GetGameAccountAsync(m_client.Cookies);
-	
-	public async Task<IDailyClaimResult> DailyClaimAsync(ICookies cookies)
+	public async Task DailiesClaimAsync(ICookies[] cookies)
 	{
-		return await m_client.DailyClaimAsync(new Request(
-			"sg-hk4e-api",
-			"/event/sol/sign",
-			cookies,
-			new Dictionary<string, string>
-			{
-				{ "act_id", "e202102251931481" },
-				{ "lang", cookies.Language.GetLanguageString() }
-			}
-		)).ConfigureAwait(false);
-	}
-	
-	private async IAsyncEnumerable<IDailyClaimResult> DailysClaimAsync(ICookies[] cookies, CancellationToken? cancellationToken = null)
-	{
-		cancellationToken ??= CancellationToken.None;
-		foreach (var cookie in cookies)
+		await foreach (var _ in DailiesClaimAsync(cookies, null))
 		{
-			if (cancellationToken.Value.IsCancellationRequested)
-				yield break;
-			
-			yield return await DailyClaimAsync(cookie).ConfigureAwait(false);
 		}
 	}
 	
-	public IAsyncEnumerable<IDailyClaimResult> DailysClaimAsync(string[] cookies, CancellationToken? cancellationToken = null)
-		=> DailysClaimAsync(cookies.Select(x => x.ParseCookies()).ToArray());
+	public async Task CodesClaimAsync(ICookies cookies, string[] codes)
+	{
+		await foreach (var _ in CodesClaimAsync(cookies, codes, null))
+		{
+		}
+	}
+	
+	public Task<IDailyClaimResult> DailyClaimAsync(string cookies)
+		=> base.DailyClaimAsync(cookies.ParseCookies());
 	
 	public Task<IDailyClaimResult> DailyClaimAsync()
-		=> DailyClaimAsync(m_client.Cookies);
+		=> base.DailyClaimAsync(Client.Cookies!);
 
-	public Task<IDailyClaimResult> DailyClaimAsync(string cookies)
-		=> DailyClaimAsync(cookies.ParseCookies());
-
-	public async Task<ICodeClaimResult> CodeClaimAsync(ICookies cookies, string code)
-	{
-		var gameAcc = await GetGameAccountAsync(cookies).ConfigureAwait(false);
-		
-		return await m_client.CodeClaimAsync(new CodeClaimRequest(
-			"sg-hk4e-api",
-			"common/apicdkey/api/webExchangeCdkey",
-			cookies,
-			new Dictionary<string, string>()
-			{
-				{ "uid", gameAcc.Uid.ToString() },
-				{ "region", gameAcc.Region.GetGenshinRegion() },
-				{ "game_biz", gameAcc.Game },
-				{ "cdkey", code },
-				{ "sLangKey", cookies.Language.GetLanguageString() },
-				{ "lang", cookies.Language.GetGenshinLang() },
-			},
-			new Dictionary<string, string>()
-			{
-				{ "Referer", "https://genshin.hoyoverse.com" },
-				{ "Orig", "https://genshin.hoyoverse.com" }
-			}
-		)).ConfigureAwait(false);
-	}
-	
 	public Task<ICodeClaimResult> CodeClaimAsync(string code)
-		=> CodeClaimAsync(m_client.Cookies, code);
+		=> base.CodeClaimAsync(Client.Cookies!, code);
+	
+	public IAsyncEnumerable<IDailyClaimResult> DailiesClaimAsync(string[] cookies, CancellationToken? cancellationToken)
+		=> base.DailiesClaimAsync(cookies.Select(x => x.ParseCookies()).ToArray(), cancellationToken);
 
-	public async IAsyncEnumerable<ICodeClaimResult> CodesClaimAsync(
+	public Task CodesClaimAsync(string cookies, string[] codes)
+		=> CodesClaimAsync(cookies.ParseCookies(), codes);
+
+	public Task DailiesClaimAsync(string[] cookies)
+		=> DailiesClaimAsync(cookies.Select(x => x.ParseCookies()).ToArray());
+
+	public IAsyncEnumerable<ICodeClaimResult> CodesClaimAsync(
+		string cookies,
 		string[] codes,
-		CancellationToken? cancellationToken = null)
-	{
-		cancellationToken ??= CancellationToken.None;
-		foreach (var code in codes)
-		{
-			if (cancellationToken.Value.IsCancellationRequested)
-				yield break;
-			
-			yield return await CodeClaimAsync(code).ConfigureAwait(false);
-		}
-	}
+		CancellationToken? cancellationToken)
+		=> base.CodesClaimAsync(cookies.ParseCookies(), codes, cancellationToken);
+
+	public IAsyncEnumerable<ICodeClaimResult> CodesClaimAsync(
+		string[] codes,
+		CancellationToken? cancellationToken)
+		=> base.CodesClaimAsync(Client.Cookies!, codes, cancellationToken);
 }
