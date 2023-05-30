@@ -45,12 +45,6 @@ public class GenshinImpactService : GenshinImpactServiceBase
 		=> DailiesClaimAsync(cookies.Select(x => x.ParseCookies()).ToArray());
 
 	public IAsyncEnumerable<ICodeClaimResult> CodesClaimAsync(
-		string cookies,
-		string[] codes,
-		CancellationToken? cancellationToken)
-		=> base.CodesClaimAsync(cookies.ParseCookies(), codes, cancellationToken);
-
-	public IAsyncEnumerable<ICodeClaimResult> CodesClaimAsync(
 		string[] codes,
 		string? cookies = null,
 		Region? region = null,
