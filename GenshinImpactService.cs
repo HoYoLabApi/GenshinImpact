@@ -1,4 +1,5 @@
 ﻿using HoYoLabApi.Classes;
+using HoYoLabApi.Enums;
 using HoYoLabApi.interfaces;
 using HoYoLabApi.Models;
 using HoYoLabApi.Static;
@@ -51,6 +52,10 @@ public class GenshinImpactService : GenshinImpactServiceBase
 
 	public IAsyncEnumerable<ICodeClaimResult> CodesClaimAsync(
 		string[] codes,
-		CancellationToken? cancellationToken)
-		=> base.CodesClaimAsync(Client.Cookies!, codes, cancellationToken);
+		string? cookies = null,
+		Region? region = null,
+		CancellationToken? cancellationToken = null)
+	{
+		return base.CodesClaimAsync(cookies?.ParseCookies() ?? Client.Cookies!, codes, region, cancellationToken);
+	}
 }

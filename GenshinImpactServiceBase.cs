@@ -1,4 +1,5 @@
 ﻿using HoYoLabApi.Classes;
+using HoYoLabApi.Enums;
 using HoYoLabApi.interfaces;
 using HoYoLabApi.Models;
 
@@ -30,7 +31,7 @@ public abstract class GenshinImpactServiceBase
 		m_codesClaimer = new CodesClaimer(client, m_accountSearcher);
 	}
 
-	public Task<GameData> GetGameAccountAsync(ICookies? cookies = null)
+	public Task<GameData[]> GetGameAccountAsync(ICookies? cookies = null)
 	{
 		return m_accountSearcher.GetGameAccountAsync(cookies ?? Client.Cookies!, "hk4e_global");
 	}
@@ -45,22 +46,28 @@ public abstract class GenshinImpactServiceBase
 		return m_dailyClaimer.DailiesClaimAsync(cookies, cancellationToken);
 	}
 	
-	public async Task<ICodeClaimResult> CodeClaimAsync(ICookies cookies, string code)
+	public async Task<ICodeClaimResult> CodeClaimAsync(ICookies cookies, string code, Region? region = null)
 	{
 		var gameAcc = await GetGameAccountAsync(cookies).ConfigureAwait(false);
-		return await m_codesClaimer.CodeClaimAsync(cookies, code, s_codeClaim(gameAcc));
+		region ??= gameAcc.First().Region;
+		return await m_codesClaimer.CodeClaimAsync(cookies, code, s_codeClaim(gameAcc.First(x => x.Region == region)));
 	}
 	
 	public async IAsyncEnumerable<ICodeClaimResult> CodesClaimAsync(
 		ICookies cookies,
 		string[] codes,
+		Region? region = null,
 		CancellationToken? cancellationToken = null)
 	{
 		cancellationToken ??= CancellationToken.None;
 		var gameAcc = await GetGameAccountAsync(cookies).ConfigureAwait(false);
-		await foreach (var codeClaimResult in m_codesClaimer.CodesClaimAsync(cookies, codes, s_codeClaim(gameAcc), cancellationToken))
+		region ??= gameAcc.First().Region;
+		foreach (var code in codes)
 		{
-			yield return codeClaimResult;
+			if (cancellationToken.Value.IsCancellationRequested)
+				yield break;
+			
+			yield return await CodeClaimAsync(cookies, code, gameAcc.First(x => x.Region == region).Region);
 		}
 	}
 }
