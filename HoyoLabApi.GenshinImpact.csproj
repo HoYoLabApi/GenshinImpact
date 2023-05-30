@@ -5,6 +5,26 @@
         <Nullable>enable</Nullable>
         <TargetFrameworks>net7.0;net6.0;net6.0-windows;net7.0-windows</TargetFrameworks>
         <LangVersion>10</LangVersion>
+        <Title>HoYoLabApi.GenshinImpact</Title>
+        <Authors>Satan1c</Authors>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/HoYoLabApi/GenshinImpact</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>hoyolab hoyoverse genshinimpact genshin</PackageTags>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>HoYoLabApi.GenshinImpact</PackageId>
+        <AssemblyName>HoYoLabApi.GenshinImpact</AssemblyName>
+        <RootNamespace>HoYoLabApi.GenshinImpact</RootNamespace>
+        <Version>1.0.1</Version>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
